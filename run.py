@@ -10,7 +10,7 @@ schemes = [
         ]
 
 isas = [
-        'arm',
+        #'arm',
         #'x86'
         ]
 num_cpus = num_threads = [
@@ -37,7 +37,7 @@ benches = [
             'freqmine',
             'streamcluster',
             'swaptions',
-            'vip',
+            'vips',
             'x264',
             ]
 os.environ["GEM5_PATH"] = "./"
