@@ -360,6 +360,22 @@ LSQUnit<Impl>::regStats()
     numConvertedExposes
         .name(name() + ".numConvertedExposes")
         .desc("Number of exposes converted from validation");
+
+    numCreatedSpecLoads
+        .name(name() + ".numCreatedSpecLoads")
+        .desc("Number of Created Spec loads");
+
+    numExposedSpecLoads
+        .name(name() + ".numExposedSpecLoads")
+        .desc("Number of Exposed Spec loads");
+
+    numNormalLoads
+        .name(name() + ".numNormalLoads")
+        .desc("Number of Loads sent to cache");
+
+    num_l1_sb_reads
+        .name(name() + ".num_l1_sb_reads")
+        .desc("Number of L1-SB reads");
 }
 
 template<class Impl>
@@ -699,6 +715,8 @@ template <class Impl>
 int
 LSQUnit<Impl>::checkSpecBuffHit(RequestPtr req, int req_idx)
 {
+    // danguria L1-SB reads
+    num_l1_sb_reads++;
 
     Addr req_eff_addr1 = req->getPaddr() & cacheBlockMask;
     //Addr req_eff_addr2 = (req->getPaddr() + req->getSize()-1) & cacheBlockMask;
@@ -911,7 +929,7 @@ LSQUnit<Impl>::executeStore(DynInstPtr &store_inst)
     // address.  If so, then we have a memory ordering violation.
     int load_idx = store_inst->lqIdx;
 
-    // TODO: Check whether this store tries to get an exclusive copy 
+    // TODO: Check whether this store tries to get an exclusive copy
     // of target line [mengjia]
     Fault store_fault = store_inst->initiateAcc();
 
@@ -1303,6 +1321,7 @@ LSQUnit<Impl>::exposeLoads()
             if (onlyExpose) {
                 load_inst->setExposeCompleted();
                 numExposes++;
+                numExposedSpecLoads++;
             } else {
                 numValidates++;
             }

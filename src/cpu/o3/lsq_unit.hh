@@ -495,7 +495,7 @@ class LSQUnit {
 
     /** Whehter or not a validation is blocked due to the memory system. */
     bool isValidationBlocked;
-    
+
     /** Whether or not a store is in flight. */
     bool storeInFlight;
 
@@ -563,6 +563,11 @@ class LSQUnit {
     Stats::Scalar numValidates;
     Stats::Scalar numExposes;
     Stats::Scalar numConvertedExposes;
+
+    Stats::Scalar numCreatedSpecLoads;
+    Stats::Scalar numExposedSpecLoads;
+    Stats::Scalar numNormalLoads;
+    Stats::Scalar num_l1_sb_reads;
 
   public:
     /** Executes the load at the given index. */
@@ -1021,6 +1026,8 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
     // successfully sent out
     if(sendSpecRead){ // sending actual request
 
+        numCreatedSpecLoads++;
+
             // [mengjia] Here we set the needExposeOnly flag
             if (needsTSO && !load_inst->isDataPrefetch()){
                 // need to check whether previous load_instructions specComplete or not
@@ -1061,6 +1068,7 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
                 (Addr)(load_inst->postSreqLow),
                 (Addr)(load_inst->postSreqHigh));
     } else {
+        numNormalLoads++;
         load_inst->setExposeCompleted();
         load_inst->needPostFetch(false);
         if (TheISA::HasUnalignedMemAcc && sreqLow) {

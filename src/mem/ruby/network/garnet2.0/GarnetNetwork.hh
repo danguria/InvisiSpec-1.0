@@ -37,6 +37,10 @@
 #include <iostream>
 #include <vector>
 
+#include "mem/protocol/CoherenceRequestType.hh"
+#include "mem/protocol/CoherenceResponseType.hh"
+#include "mem/protocol/MachineID.hh"
+#include "mem/protocol/MachineType.hh"
 #include "mem/ruby/network/Network.hh"
 #include "mem/ruby/network/fault_model/FaultModel.hh"
 #include "mem/ruby/network/garnet2.0/CommonTypes.hh"
@@ -48,6 +52,37 @@ class Router;
 class NetDest;
 class NetworkLink;
 class CreditLink;
+
+namespace PROTO_REQ_TYPES {
+  enum {
+    GET_INSTR,
+    GETS,
+    GETSPEC,
+    EXPOSE,
+    GETX,
+    UPGRADE,
+    PUTX,
+    INV,
+    DMA_READ,
+    DMA_WRITE,
+    NUM_PROTO_REQ
+  };
+}
+
+namespace PROTO_RES_TYPES {
+  enum {
+    DATA,
+    DATA_EXCLUSIVE,
+    MEMORY_DATA,
+    MEMORY_ACK,
+    UNBLOCK,
+    EXCLUSIVE_UNBLOCK,
+    WB_ACK,
+    ACK,
+    INV,
+    NUM_PROTO_RES
+  };
+}
 
 class GarnetNetwork : public Network
 {
@@ -143,6 +178,16 @@ class GarnetNetwork : public Network
         m_total_hops += hops;
     }
 
+    void
+    increment_message_size_type_req(
+        MessageSizeType type,
+        MachineID requestor);
+    void
+    increment_message_size_type_res(
+        MessageSizeType type,
+        MachineID responsor);
+
+
   protected:
     // Configuration
     int m_num_rows;
@@ -183,6 +228,10 @@ class GarnetNetwork : public Network
     Stats::Scalar m_average_link_utilization;
     Stats::Vector m_average_vc_load;
 
+    Stats::Vector2d m_message_size_type_req;
+    Stats::Vector2d m_message_size_type_res;
+
+
     Stats::Scalar  m_total_hops;
     Stats::Formula m_avg_hops;
 
@@ -195,6 +244,8 @@ class GarnetNetwork : public Network
     std::vector<NetworkLink *> m_networklinks; // All flit links in the network
     std::vector<CreditLink *> m_creditlinks; // All credit links in the network
     std::vector<NetworkInterface *> m_nis;   // All NI's in Network
+
+    static const char* string_machine_types[16];
 };
 
 inline std::ostream&

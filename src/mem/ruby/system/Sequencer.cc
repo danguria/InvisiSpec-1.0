@@ -33,6 +33,7 @@
 #include "base/str.hh"
 #include "cpu/testers/rubytest/RubyTester.hh"
 #include "debug/MemoryAccess.hh"
+#include "debug/NetworkDebug.hh"
 #include "debug/ProtocolTrace.hh"
 #include "debug/RubySequencer.hh"
 #include "debug/RubyStats.hh"
@@ -47,6 +48,7 @@
 #include "sim/system.hh"
 
 using namespace std;
+const char* string_ifetch_trace[3] = { "hit", "miss", "replace" };
 
 Sequencer *
 RubySequencerParams::create()
@@ -82,6 +84,13 @@ Sequencer::Sequencer(const Params *p)
 
 Sequencer::~Sequencer()
 {
+  DPRINTF(NetworkDebug,
+          "====================== IFETCH TRACE ==============\n");
+  unordered_map<Addr, unordered_map<int, unsigned long> >::iterator it
+      = m_ifetch_trace.begin();
+  for (; it != m_ifetch_trace.end(); it++)
+    DPRINTF(NetworkDebug, "%#x: %d %d\n",
+            it->first , (it->second)[0], (it->second)[1]);
 }
 
 void
@@ -430,6 +439,8 @@ Sequencer::writeCallback(Addr address, DataBlock& data,
 }
 
 bool Sequencer::updateSBB(PacketPtr pkt, DataBlock& data, Addr dataAddress) {
+    //danguria: L1-SB write
+    m_num_l1_sb_writes++;
     uint8_t idx = pkt->reqIdx;
     SBE& sbe = m_specBuf[idx];
     int blkIdx = pkt->isFirst() ? 0 : 1;
@@ -463,7 +474,7 @@ Sequencer::readCallback(Addr address, DataBlock& data,
            (request->m_type == RubyRequestType_SPEC_LD) ||
            (request->m_type == RubyRequestType_EXPOSE) ||
            (request->m_type == RubyRequestType_IFETCH));
-    
+
     PacketPtr pkt = request->pkt;
     if (pkt->isSpec()) {
         assert(!pkt->onlyAccessSpecBuff());
@@ -770,13 +781,25 @@ Sequencer::makeRequest(PacketPtr pkt)
 
     if (pkt->isSpec()) {
         DPRINTFR(SpecBuffer, "%10s Issuing SPEC_LD (idx=%d-%d, addr=%#x)\n",
-                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1, printAddress(pkt->getAddr()));
+                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1,
+                 printAddress(pkt->getAddr()));
+        m_num_spec_lds++;
     } else if (pkt->isExpose()) {
         DPRINTFR(SpecBuffer, "%10s Issuing EXPOSE (idx=%d-%d, addr=%#x)\n",
-                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1, printAddress(pkt->getAddr()));
+                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1,
+                 printAddress(pkt->getAddr()));
+        m_num_expose++;
     } else if (pkt->isValidate()) {
         DPRINTFR(SpecBuffer, "%10s Issuing VALIDATE (idx=%d-%d, addr=%#x)\n",
-                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1, printAddress(pkt->getAddr()));
+                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1,
+                 printAddress(pkt->getAddr()));
+        m_num_validate++;
+    } else if (primary_type == RubyRequestType_LD) {
+        DPRINTFR(SpecBuffer,
+                "%10s Issuing LD (idx=%d-%d, addr=%#x)\n",
+                 curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1,
+                 printAddress(pkt->getAddr()));
+        m_num_lds++;
     }
 
     issueRequest(pkt, secondary_type);
@@ -905,6 +928,7 @@ Sequencer::regStats()
         .desc("Number of times a load aliased with a pending store")
         .flags(Stats::nozero);
 
+
     // These statistical variables are not for display.
     // The profiler will collate these across different
     // sequencers and display those collated statistics.
@@ -956,4 +980,33 @@ Sequencer::regStats()
             m_missTypeMachLatencyHist[i][j]->init(10);
         }
     }
+
+    m_num_lds
+        .name(name() + ".num_lds")
+        .desc("Number of data load request by a core");
+    m_num_spec_lds
+        .name(name() + ".num_spec_lds")
+        .desc("Number of spec load request by a core");
+    m_num_expose
+        .name(name() + ".num_expose")
+        .desc("Number of expose request by a core");
+    m_num_validate
+        .name(name() + ".num_validate")
+        .desc("Number of validate request by a core");
+    m_num_l1_sb_writes
+        .name(name() + ".num_l1_sb_writes")
+        .desc("Number of L1-SB writes");
+}
+
+void Sequencer::updateIFetchTraceCallback(Addr address, int type)
+{
+  assert(type >= 0 && type <= 2);
+  if (m_ifetch_trace.find(address) == m_ifetch_trace.end()) {
+    m_ifetch_trace[address][0] = 0;
+    m_ifetch_trace[address][1] = 0;
+    m_ifetch_trace[address][2] = 0;
+    m_ifetch_trace[address][type]++;
+  } else {
+    m_ifetch_trace[address][type]++;
+  }
 }

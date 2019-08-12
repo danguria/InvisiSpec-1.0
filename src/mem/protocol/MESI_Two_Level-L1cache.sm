@@ -1157,6 +1157,18 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     sequencer.readCallback(address, cache_entry.DataBlk);
   }
 
+  action(profile_spec_miss, "psm", desc=".") {
+      ++L1Dcache.spec_misses;
+  }
+
+  action(profile_spec_hit, "psh", desc=".") {
+      ++L1Dcache.spec_hits;
+  }
+
+  action(profileExpose, "pfe", desc=".") {
+      ++L1Dcache.num_expose;
+  }
+
 
   //*****************************************************
   // TRANSITIONS
@@ -1199,6 +1211,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     i_allocateTBE;
     ex_issueEXPOSE;
     uu_profileDataMiss;
+    profileExpose;
     //po_observeMiss;
     k_popMandatoryQueue;
   }
@@ -1206,6 +1219,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
   transition({NP,I}, SpecLoad, IX) {
     iw_allocateTBEWithoutCacheEntry;
     as_issueGETSPEC;
+    profile_spec_miss;
     k_popMandatoryQueue;
   }
 
@@ -1218,12 +1232,14 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition(PF_IS, {Load, Expose}, IS) {
     uu_profileDataMiss;
+    profileExpose;
     ppm_observePfMiss;
     k_popMandatoryQueue;
   }
 
   transition(PF_IS_I, {Load, Expose}, IS_I) {
     uu_profileDataMiss;
+    profileExpose;
     ppm_observePfMiss;
     k_popMandatoryQueue;
   }
@@ -1291,6 +1307,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   // Transitions from Shared
   transition({S,E,M}, {Load, Expose}) {
+    profileExpose;
     h_load_hit;
     uu_profileDataHit;
     k_popMandatoryQueue;
@@ -1298,6 +1315,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
   transition({S,E,M}, SpecLoad) {
     h_spec_load_hit;
+    profile_spec_hit;
     k_popMandatoryQueue;
   }
 

@@ -38,7 +38,10 @@
 
 #include "base/cast.hh"
 #include "base/stl_helpers.hh"
+#include "debug/NetworkDebug.hh"
 #include "debug/RubyNetwork.hh"
+#include "mem/protocol/RequestMsg.hh"
+#include "mem/protocol/ResponseMsg.hh"
 #include "mem/ruby/network/MessageBuffer.hh"
 #include "mem/ruby/network/garnet2.0/Credit.hh"
 #include "mem/ruby/network/garnet2.0/flitBuffer.hh"
@@ -380,6 +383,25 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
         route.src_router = m_router_id;
         route.dest_ni = destID;
         route.dest_router = m_net_ptr->get_router_id(destID);
+
+        RequestMsg* reqMsg = dynamic_cast<RequestMsg*>(new_net_msg_ptr);
+        ResponseMsg* resMsg = dynamic_cast<ResponseMsg*>(new_net_msg_ptr);
+        if (reqMsg) {
+          //DPRINTF(NetworkDebug, "creating a packet from request msg");
+          m_net_ptr->increment_message_size_type_req(
+                  net_msg_ptr->getMessageSize(),
+                  reqMsg->getRequestor());
+          //DPRINTF(NetworkDebug, "Processing message: src:%d, dest: %d, %s\n",
+          //    route.src_router,
+          //    route.dest_router,
+          //    *(new_net_msg_ptr));
+        } else {
+          //DPRINTF(NetworkDebug, "creating a packet from RESPONSE msg");
+          m_net_ptr->increment_message_size_type_res(
+                  net_msg_ptr->getMessageSize(),
+                  resMsg->getSender());
+        }
+
 
         // initialize hops_traversed to -1
         // so that the first router increments it to 0

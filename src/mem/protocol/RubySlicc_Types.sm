@@ -39,6 +39,7 @@
 external_type(MessageBuffer, buffer="yes", inport="yes", outport="yes");
 external_type(OutPort, primitive="yes");
 external_type(Scalar, primitive="yes");
+external_type(Vector2d, primitive="yes");
 
 structure(InPort, external = "yes", primitive="yes") {
   bool isReady(Tick current_time);
@@ -117,6 +118,7 @@ structure (Sequencer, external = "yes") {
   void recordRequestType(SequencerRequestType);
   bool checkResourceAvailable(CacheResourceType, Addr);
   void invalidateSC(Addr);
+  void updateIFetchTraceCallback(Addr, int);
 }
 
 structure (GPUCoalescer, external = "yes") {
@@ -214,6 +216,9 @@ structure (CacheMemory, external = "yes") {
 
   Scalar demand_misses;
   Scalar demand_hits;
+  Scalar num_expose;
+  Scalar spec_misses;
+  Scalar spec_hits;
 }
 
 structure (WireBuffer, inport="yes", outport="yes", external = "yes") {

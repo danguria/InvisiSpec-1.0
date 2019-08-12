@@ -39,6 +39,7 @@ from gem5_scons import Transform
 
 Import('*')
 
+DebugFlag('NetworkDebug')
 DebugFlag('ProtocolTrace')
 DebugFlag('RubyCache')
 DebugFlag('RubyCacheTrace')

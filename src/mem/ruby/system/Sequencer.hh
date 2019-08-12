@@ -101,6 +101,8 @@ class Sequencer : public RubyPort
     void specBufferHitCallback();
     bool updateSBB(PacketPtr pkt, DataBlock& data, Addr dataAddress);
 
+    void updateIFetchTraceCallback(Addr address, int type);
+
     RequestStatus makeRequest(PacketPtr pkt);
     bool empty() const;
     int outstandingCount() const { return m_outstanding_count; }
@@ -260,6 +262,16 @@ class Sequencer : public RubyPort
     std::vector<SBE> m_specBuf;
     std::queue<std::pair<PacketPtr, Tick>> m_specRequestQueue;
     EventFunctionWrapper specBufferHitEvent;
+
+    std::unordered_map<Addr,
+        std::unordered_map<int, unsigned long> > m_ifetch_trace;
+    Stats::Scalar m_num_lds;
+    Stats::Scalar m_num_spec_lds;
+    Stats::Scalar m_num_expose;
+    Stats::Scalar m_num_validate;
+
+    Stats::Scalar m_num_l1_sb_writes;
+
 };
 
 inline std::ostream&

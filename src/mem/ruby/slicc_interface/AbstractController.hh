@@ -207,6 +207,9 @@ class AbstractController : public MemObject, public Consumer
     Stats::Histogram m_delayHistogram;
     std::vector<Stats::Histogram *> m_delayVCHistogram;
 
+    Stats::Scalar m_num_l2_sb_reads;
+    Stats::Scalar m_num_l2_sb_writes;
+
     //! Callback class used for collating statistics from all the
     //! controller of this type.
     class StatsCallback : public Callback

@@ -105,6 +105,14 @@ AbstractController::regStats()
         .name(name() + ".expose_misses")
         .desc("number of expose misses at LLC spec buffer")
         .flags(Stats::nozero);
+
+    m_num_l2_sb_reads
+        .name(name() + ".num_l2_sb_reads")
+        .desc("number of LLC-SB reads");
+
+    m_num_l2_sb_writes
+        .name(name() + ".num_l2_sb_writes")
+        .desc("number of LLC-SB writes");
 }
 
 void
@@ -260,6 +268,8 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
     assert(type >=0 && type <= 2);
     if (type == 0) {
         for (int c = 0; c < 8; ++c) {
+            // danguria LLC-SB read
+            m_num_l2_sb_reads++;
             for (int i = 0; i < 66; ++i) {
                 if (m_specBuf[c][i].address == addr) {
                     DPRINTFR(MemSpecBuffer, "%10s Cleared by Read (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), c, type, i, printAddress(addr));
@@ -284,6 +294,8 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
             (*msg).m_DataBlk = m_specBuf[coreId][sbeId].data;
             getMemoryQueue()->enqueue(msg, clockEdge(), cyclesToTicks(Cycles(1)));
             for (int c = 0; c < 8; ++c) {
+                // danguria LLC-SB read
+                m_num_l2_sb_reads++;
                 for (int i = 0; i < 66; ++i) {
                     if (m_specBuf[c][i].address == addr) {
                         DPRINTFR(MemSpecBuffer, "%10s Cleared by Expose Hit (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), c, type, i, printAddress(addr));
@@ -297,6 +309,8 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
             DPRINTFR(MemSpecBuffer, "%10s Expose Miss (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(addr));
             ++m_expose_misses;
             for (int c = 0; c < 8; ++c) {
+                // danguria LLC-SB read
+                m_num_l2_sb_reads++;
                 for (int i = 0; i < 66; ++i) {
                     if (m_specBuf[c][i].address == addr) {
                         DPRINTFR(MemSpecBuffer, "%10s Cleared by Expose Miss (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), c, type, i, printAddress(addr));
@@ -307,7 +321,7 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
             }
         }
     }
-    
+
     RequestPtr req = new Request(addr, RubySystem::getBlockSizeBytes(), 0,
                                  m_masterId);
 
@@ -423,10 +437,17 @@ AbstractController::recvTimingResp(PacketPtr pkt)
         (*msg).m_DataBlk.setData(pkt->getPtr<uint8_t>(), 0,
                                  RubySystem::getBlockSizeBytes());
         if (type == 1) {
-            DPRINTFR(MemSpecBuffer, "%10s Updated by ReadSpec (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(pkt->getAddr()));
+            // danguria LLC-SB write
+            m_num_l2_sb_writes++;
+            DPRINTFR(MemSpecBuffer,
+                    "%10s Updated by ReadSpec "
+                    "(core=%d, type=%d, idx=%d, addr=%#x)\n",
+                    curTick(), coreId, type, sbeId,
+                    printAddress(pkt->getAddr()));
             m_specBuf[coreId][sbeId].address = pkt->getAddr();
-            m_specBuf[coreId][sbeId].data.setData(pkt->getPtr<uint8_t>(), 0,
-                                                  RubySystem::getBlockSizeBytes());
+            m_specBuf[coreId][sbeId].data.setData(
+                    pkt->getPtr<uint8_t>(), 0,
+                    RubySystem::getBlockSizeBytes());
         }
     } else if (pkt->isWrite()) {
         (*msg).m_Type = MemoryRequestType_MEMORY_WB;

@@ -6,29 +6,31 @@ import math
 schemes = [
         #'UnsafeBaseline',
         'SpectreSafeInvisibleSpec',
-        #'FuturisticSafeInvisibleSpec',
+        'FuturisticSafeInvisibleSpec',
         ]
 
 isas = [
-        #'arm',
+        'arm',
         #'x86'
         ]
 num_cpus = num_threads = [
-        '4',
-        #'8',
+        #'4',
+        '8',
         #'16',
         #'64',
         ]
 
 data_size = 'simmedium'
 runtype = 'restore' #'ckpts'
-test_case = 'InvisiSpec-upto-500m'
+test_case = 'InvisiSpec-upto-until-end-of-roi'
+#test_case = 'InvisiSpec-upto-100m-optimized'
+#test_case = 'test-specloads-invisi'
 
 m5_root = '/data/sungkeun/HWSecurity/m5out'
 
 benches = [
             'blackscholes',
-            'bodytrack',
+            #'bodytrack',
             'canneal',
             'dedup',
             'facesim',
@@ -37,7 +39,7 @@ benches = [
             'freqmine',
             'streamcluster',
             'swaptions',
-            'vips',
+            #'vips',
             'x264',
             ]
 os.environ["GEM5_PATH"] = "./"
@@ -53,7 +55,7 @@ def create_command(bench,
         os.environ['M5_PATH'] = '/home/sungkeun/gem5-kernel/x86_parsec'
 
         gem5_options.append(('bin-path'    ,
-            './build/X86_MESI_Two_Level/gem5.opt'))
+            './build/X86_MESI_Two_Level/gem5.fast'))
 
         script_options.append(('--script',
             ('./scripts_x86/%s_%sc_%s_ckpts.rcS' % \
@@ -69,7 +71,7 @@ def create_command(bench,
     elif isa == 'arm':
         os.environ['M5_PATH'] = '/home/sungkeun/gem5-kernel/arm_parsec'
         gem5_options.append(('bin-path',
-            './build/ARM_MESI_Two_Level/gem5.opt'))
+            './build/ARM_MESI_Two_Level/gem5.fast'))
 
         script_options.append(('--script',
             ('./scripts/%s_%s_%s.rcS' % (bench, data_size, num_thread))))
@@ -132,7 +134,8 @@ def create_command(bench,
     # common options
     #gem5_options.append(('--debug-flags', 'NetworkDebug,ProtocolTrace'))
     #gem5_options.append(('--debug-flags', 'NetworkDebug'))
-    #gem5_options.append(('--debug-file', 'debug.out.gz'))
+    #gem5_options.append(('--debug-flags', 'O3CPUAll'))
+    #gem5_options.append(('--debug-file', 'debug.out'))
     #gem5_options.append(('--redirect-stdout', ''))
     #gem5_options.append(('--redirect-stderr', ''))
     script_options.insert(0,
@@ -167,7 +170,7 @@ def create_command(bench,
         # InvisiSpec
         script_options.append(('--scheme', scheme))
         script_options.append(('--needsTSO', '1'))
-        script_options.append(('--maxinsts', '500000000'))
+        #script_options.append(('--maxinsts', '500000000'))
 
 
     return gem5_options, script_options, outdir
@@ -216,4 +219,3 @@ for bench in benches:
                     print command
                     print '\n'
                     #os.system(command)
-

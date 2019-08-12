@@ -37,6 +37,8 @@
 
 #include "base/cast.hh"
 #include "base/stl_helpers.hh"
+#include "debug/NetworkDebug.hh"
+#include "mem/protocol/MachineType.hh"
 #include "mem/ruby/common/NetDest.hh"
 #include "mem/ruby/network/MessageBuffer.hh"
 #include "mem/ruby/network/garnet2.0/CommonTypes.hh"
@@ -55,6 +57,25 @@ using m5::stl_helpers::deletePointers;
  * Default parameters (GarnetNetwork.py) can be overwritten from command line
  * (see configs/network/Network.py)
  */
+
+const char* GarnetNetwork::string_machine_types[16] = {
+  "L1Cache",
+  "L2Cache",
+  "L3Cache",
+  "Directory",
+  "DMA",
+  "Collector",
+  "L1Cache_wCC",
+  "L2Cache_wCC",
+  "CorePair",
+  "TCP",
+  "TCC",
+  "TCCdir",
+  "SQC",
+  "RegionDir",
+  "RegionBuffer",
+  "NULL"
+};
 
 GarnetNetwork::GarnetNetwork(const Params *p)
     : Network(p)
@@ -393,6 +414,22 @@ GarnetNetwork::regStats()
         .name(name() + ".avg_vc_load")
         .flags(Stats::pdf | Stats::total | Stats::nozero | Stats::oneline)
         ;
+
+    m_message_size_type_req
+        .init(MessageSizeType::MessageSizeType_NUM, 16)
+        .name(name() + ".message_size_type_req")
+        .desc("Number of each request")
+        .flags(Stats::total | Stats::pdf | Stats::dist)
+        ;
+    m_message_size_type_req.ysubnames(string_machine_types);
+
+    m_message_size_type_res
+        .init(MessageSizeType::MessageSizeType_NUM, 16)
+        .name(name() + ".message_size_type_res")
+        .desc("Number of each response")
+        .flags(Stats::total | Stats::pdf | Stats::dist)
+        ;
+    m_message_size_type_res.ysubnames(string_machine_types);
 }
 
 void
@@ -457,4 +494,20 @@ GarnetNetwork::functionalWrite(Packet *pkt)
     }
 
     return num_functional_writes;
+}
+
+void
+GarnetNetwork::increment_message_size_type_req(
+        MessageSizeType type, MachineID requestor)
+{
+  m_message_size_type_req[type][requestor.getType()]++;
+
+}
+
+    void
+GarnetNetwork::increment_message_size_type_res(
+        MessageSizeType type, MachineID responsor)
+{
+  m_message_size_type_res[type][responsor.getType()]++;
+
 }

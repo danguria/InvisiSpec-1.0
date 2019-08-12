@@ -577,6 +577,21 @@ CacheMemory::regStats()
         .desc("number of stalls caused by data array")
         .flags(Stats::nozero)
         ;
+
+    m_num_expose
+        .name(name() + ".num_expose_cache")
+        .desc("Number of processed exposes")
+        ;
+
+    m_spec_misses
+        .name(name() + ".num_spec_misses")
+        .desc("Number of spec misses")
+        ;
+
+    m_spec_hits
+        .name(name() + ".num_spec_hits")
+        .desc("Number of spec hits")
+        ;
 }
 
 // assumption: SLICC generated files will only call this function

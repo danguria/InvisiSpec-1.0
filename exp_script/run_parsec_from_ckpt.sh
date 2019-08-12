@@ -2,6 +2,8 @@
 
 # PARSEC benchmarks
 
+export GEM5_PATH=/home/sungkeun/git/InvisiSpec-1.0
+export M5_PATH=$GEM5_PATH/m5out
 #Need to export GEM5_PATH
 if [ -z ${GEM5_PATH+x} ];
 then
@@ -23,8 +25,7 @@ fi
 
 
 WORKLOAD=blackscholes
-INPUT_SIZE=test
-#simmedium
+INPUT_SIZE=simmedium
 SCHEME=FuturisticSafeInvisibleSpec
 #FuturisticSafeFence
 CORE_NUM=4

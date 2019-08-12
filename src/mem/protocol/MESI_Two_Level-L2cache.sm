@@ -944,6 +944,18 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     wakeUpBuffers(address);
   }
 
+  action(profile_spec_miss, "psm", desc=".") {
+      ++L2cache.spec_misses;
+  }
+
+  action(profile_spec_hit, "psh", desc=".") {
+      ++L2cache.spec_hits;
+  }
+
+  action(profileExpose, "pfe", desc=".") {
+      ++L2cache.num_expose;
+  }
+
   //*****************************************************
   // TRANSITIONS
   //*****************************************************
@@ -1001,6 +1013,7 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     ssss_recordExposeL1ID;
     a_issueFetchToMemory;
     uu_profileMiss;
+    profileExpose;
     jj_popL1RequestQueue;
   }
 
@@ -1030,6 +1043,7 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     iw_allocateTBEWithoutCacheEntry;
     sss_recordGetSPECL1ID;
     a_issueFetchToMemory;
+    profile_spec_miss;
     jj_popL1RequestQueue;
   }
 
@@ -1087,16 +1101,19 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     nn_addSharer;
     ssss_recordExposeL1ID;
     uu_profileMiss;
+    profileExpose;
     jj_popL1RequestQueue;
   }
 
   transition({IS, ISS, IEE}, L1_GETSPEC, IS) {
     sss_recordGetSPECL1ID;
+    profile_spec_miss;
     jj_popL1RequestQueue;
   }
 
   transition(II, L1_GETSPEC) {
     sss_recordGetSPECL1ID;
+    profile_spec_miss;
     jj_popL1RequestQueue;
   }
 
@@ -1128,11 +1145,13 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     nn_addSharer;
     set_setMRU;
     uu_profileHit;
+    profileExpose;
     jj_popL1RequestQueue;
   }
 
   transition({SS, M}, L1_GETSPEC) {
     dss_sendSharedDataToSpecRequestor;
+    profile_spec_hit;
     jj_popL1RequestQueue;
   }
 
@@ -1194,6 +1213,7 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     ddex_sendExclusiveDataToExposeRequestor;
     set_setMRU;
     uu_profileHit;
+    profileExpose;
     jj_popL1RequestQueue;
   }
 
@@ -1232,12 +1252,14 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     bex_forwardExposeRequestToExclusive;
     uu_profileMiss;
     set_setMRU;
+    profileExpose;
     jj_popL1RequestQueue;
   }
 
   // [InvisiSpec] Do we need to block?
   transition(MT, L1_GETSPEC) {
     bs_forwardSpecRequestToExclusive;
+    profile_spec_miss;
     jj_popL1RequestQueue;
   }
 

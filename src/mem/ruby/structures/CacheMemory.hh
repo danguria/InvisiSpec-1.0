@@ -146,6 +146,10 @@ class CacheMemory : public SimObject
     Stats::Scalar numTagArrayStalls;
     Stats::Scalar numDataArrayStalls;
 
+    Stats::Scalar m_num_expose;
+    Stats::Scalar m_spec_misses;
+    Stats::Scalar m_spec_hits;
+
     int getCacheSize() const { return m_cache_size; }
     int getCacheAssoc() const { return m_cache_assoc; }
     int getNumBlocks() const { return m_cache_num_sets * m_cache_assoc; }
