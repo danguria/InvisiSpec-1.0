@@ -680,6 +680,13 @@ LSQUnit<Impl>::checkPrevLoadsExecuted(int req_idx)
             // then return false
             return false;
         }
+        if (needsTSO && loadQueue[load_idx]->needPostFetch() &&
+                !loadQueue[load_idx]->needExposeOnly() &&
+                !loadQueue[load_idx]->isExposeCompleted()){
+            // in TSO we cannot expose if a previous load
+            // that needs validation didn't validate yet
+            return false;
+        }
         incrLdIdx(load_idx);
     }
 
@@ -1333,8 +1340,8 @@ LSQUnit<Impl>::exposeLoads()
                 DPRINTF(LSQUnit, "Expose finished. Execution done."
                     "Send inst [sn:%lli] to commit stage.\n",
                     load_inst->seqNum);
-                    iewStage->instToCommit(load_inst);
-                    iewStage->activityThisCycle();
+                    //iewStage->instToCommit(load_inst);
+                    //iewStage->activityThisCycle();
             } else{
                 DPRINTF(LSQUnit, "Need validation or execution not finishes."
                     "Need to wait for readResp/validateResp "
@@ -1751,8 +1758,8 @@ LSQUnit<Impl>::completeValidate(DynInstPtr &inst, PacketPtr pkt)
         DPRINTF(LSQUnit, "Validation finished. Execution done."
             "Send inst [sn:%lli] to commit stage.\n",
             inst->seqNum);
-            iewStage->instToCommit(inst);
-            iewStage->activityThisCycle();
+            //iewStage->instToCommit(inst);
+            //iewStage->activityThisCycle();
     } else{
         DPRINTF(LSQUnit, "Validation done. Execution not finishes."
             "Need to wait for readResp for inst [sn:%lli].\n",
@@ -1829,8 +1836,8 @@ LSQUnit<Impl>::writeback(DynInstPtr &inst, PacketPtr pkt)
         }else{
             DPRINTF(LSQUnit, "Expose and execution both finished. "
                 "Send inst [sn:%lli] to commit stage\n", inst->seqNum);
-            iewStage->instToCommit(inst);
         }
+        iewStage->instToCommit(inst);
 
     }
 
