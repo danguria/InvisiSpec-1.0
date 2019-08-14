@@ -219,6 +219,9 @@ class Sequencer : public RubyPort
     Stats::Scalar m_load_waiting_on_store;
     Stats::Scalar m_load_waiting_on_load;
 
+    Stats::Scalar m_store_waiting_on_expose;
+    Stats::Scalar m_load_waiting_on_expose;
+
     int m_coreId;
 
     bool m_runningGarnetStandalone;

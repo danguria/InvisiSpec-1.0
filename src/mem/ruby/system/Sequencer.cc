@@ -218,6 +218,9 @@ Sequencer::insertRequest(PacketPtr pkt, RubyRequestType request_type)
         // cache line.
         if (m_readRequestTable.count(line_addr) > 0) {
             m_store_waiting_on_load++;
+            if (m_readRequestTable[line_addr]->pkt->isExpose()) {
+                m_store_waiting_on_expose++;
+            }
             return RequestStatus_Aliased;
         }
 
@@ -261,6 +264,9 @@ Sequencer::insertRequest(PacketPtr pkt, RubyRequestType request_type)
         } else {
             // There is an outstanding read request for the cache line
             m_load_waiting_on_load++;
+            if (m_readRequestTable[line_addr]->pkt->isExpose()) {
+                m_load_waiting_on_expose++;
+            }
             return RequestStatus_Aliased;
         }
     }
@@ -928,6 +934,13 @@ Sequencer::regStats()
         .desc("Number of times a load aliased with a pending store")
         .flags(Stats::nozero);
 
+    m_load_waiting_on_expose
+        .name(name() + ".load_waiting_on_expose")
+        .desc("Number of times a load aliased with a pending expose");
+
+    m_store_waiting_on_expose
+        .name(name() + ".store_waiting_on_expose")
+        .desc("Number of times a store aliased with a pending expose");
 
     // These statistical variables are not for display.
     // The profiler will collate these across different
