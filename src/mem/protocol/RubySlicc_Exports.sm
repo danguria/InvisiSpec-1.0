@@ -266,6 +266,12 @@ enumeration(MessageSizeType, desc="...") {
   EXPOSE_Control, desc="EXPOSE control message";
   EXPOSE_Request_Control, desc="EXPOSE forward request";
   EXPOSE_Data, desc="EXPOSE data response";
+  UNDO_Control, desc="UNDO control message";
+  UNDO_Request_Control, desc="UNDO forward request";
+  UNDO_Response_Control, desc="UNDO response";
+  UNDO_Response_Data, desc="UNDO response data";
+  CLFLUSH_Control, desc="CLFLUSH control message";
+  CLFLUSH_Request_Control, desc="CLFLUSH forward request";
 }
 
 // AccessType
