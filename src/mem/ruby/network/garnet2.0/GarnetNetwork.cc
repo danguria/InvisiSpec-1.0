@@ -415,6 +415,12 @@ GarnetNetwork::regStats()
         .flags(Stats::pdf | Stats::total | Stats::nozero | Stats::oneline)
         ;
 
+    m_msg_type_category
+        .init(MessageSizeType::MessageSizeType_NUM)
+        .name(name() + ".net_msg_type_category")
+        .flags(Stats::pdf | Stats::total)
+        ;
+
     m_message_size_type_req
         .init(MessageSizeType::MessageSizeType_NUM, 16)
         .name(name() + ".message_size_type_req")
@@ -504,10 +510,17 @@ GarnetNetwork::increment_message_size_type_req(
 
 }
 
-    void
+void
 GarnetNetwork::increment_message_size_type_res(
         MessageSizeType type, MachineID responsor)
 {
   m_message_size_type_res[type][responsor.getType()]++;
 
+}
+
+void
+GarnetNetwork::increment_msg_type_category(
+        MessageSizeType type)
+{
+    m_msg_type_category[type]++;
 }

@@ -186,6 +186,9 @@ class GarnetNetwork : public Network
     increment_message_size_type_res(
         MessageSizeType type,
         MachineID responsor);
+    void
+    increment_msg_type_category(
+        MessageSizeType type);
 
 
   protected:
@@ -230,6 +233,8 @@ class GarnetNetwork : public Network
 
     Stats::Vector2d m_message_size_type_req;
     Stats::Vector2d m_message_size_type_res;
+
+    Stats::Vector m_msg_type_category;
 
 
     Stats::Scalar  m_total_hops;

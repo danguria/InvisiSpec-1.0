@@ -148,6 +148,11 @@ Network::MessageSizeType_to_int(MessageSizeType size_type)
       case MessageSizeType_SPECLD_Request_Control:
       case MessageSizeType_EXPOSE_Control:
       case MessageSizeType_EXPOSE_Request_Control:
+      case MessageSizeType_UNDO_Control:
+      case MessageSizeType_UNDO_Request_Control:
+      case MessageSizeType_UNDO_Response_Control:
+      case MessageSizeType_CLFLUSH_Control:
+      case MessageSizeType_CLFLUSH_Request_Control:
         return m_control_msg_size;
       case MessageSizeType_Data:
       case MessageSizeType_Response_Data:
@@ -156,6 +161,7 @@ Network::MessageSizeType_to_int(MessageSizeType size_type)
       case MessageSizeType_Writeback_Data:
       case MessageSizeType_SPECLD_Data:
       case MessageSizeType_EXPOSE_Data:
+      case MessageSizeType_UNDO_Response_Data:
         return m_data_msg_size;
       default:
         panic("Invalid range for type MessageSizeType");

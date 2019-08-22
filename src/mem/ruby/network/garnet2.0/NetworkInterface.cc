@@ -386,21 +386,6 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
 
         RequestMsg* reqMsg = dynamic_cast<RequestMsg*>(new_net_msg_ptr);
         ResponseMsg* resMsg = dynamic_cast<ResponseMsg*>(new_net_msg_ptr);
-        if (reqMsg) {
-          //DPRINTF(NetworkDebug, "creating a packet from request msg");
-          m_net_ptr->increment_message_size_type_req(
-                  net_msg_ptr->getMessageSize(),
-                  reqMsg->getRequestor());
-          //DPRINTF(NetworkDebug, "Processing message: src:%d, dest: %d, %s\n",
-          //    route.src_router,
-          //    route.dest_router,
-          //    *(new_net_msg_ptr));
-        } else {
-          //DPRINTF(NetworkDebug, "creating a packet from RESPONSE msg");
-          m_net_ptr->increment_message_size_type_res(
-                  net_msg_ptr->getMessageSize(),
-                  resMsg->getSender());
-        }
 
 
         // initialize hops_traversed to -1
@@ -415,6 +400,18 @@ NetworkInterface::flitisizeMessage(MsgPtr msg_ptr, int vnet)
 
             fl->set_src_delay(curCycle() - ticksToCycles(msg_ptr->getTime()));
             m_ni_out_vcs[vc]->insert(fl);
+            if (reqMsg) {
+                m_net_ptr->increment_message_size_type_req(
+                        net_msg_ptr->getMessageSize(),
+                        reqMsg->getRequestor());
+            } else {
+                m_net_ptr->increment_message_size_type_res(
+                        net_msg_ptr->getMessageSize(),
+                        resMsg->getSender());
+            }
+
+            m_net_ptr->increment_msg_type_category(
+                    net_msg_ptr->getMessageSize());
         }
 
         m_ni_out_vcs_enqueue_time[vc] = curCycle();
