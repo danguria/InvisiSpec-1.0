@@ -226,7 +226,7 @@ LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
     // isConservative: if True, react after all preceding instructions complete/no exception;
     //                 if False, react only after all preceding stores/brancehs complete
     const std::string scheme = params->simulateScheme;
-    if (scheme.compare("UnsafeBaseline")==0){
+    if (scheme.compare("Base")==0){
         loadInExec = true;
         isInvisibleSpec = false; // send real request
         isFuturistic = false; // not relevant in unsafe mode.
@@ -235,7 +235,7 @@ LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
         loadInExec = false;
         isInvisibleSpec = false; // not used since loadInExec is false
         isFuturistic = true; // send readReq at head of ROB
-    }else if (scheme.compare("FuturisticSafeInvisibleSpec")==0){
+    }else if (scheme.compare("IS-Md")==0){
         // only make load visible when all preceding instructions
         // complete and no exception
         loadInExec = true;
@@ -246,7 +246,7 @@ LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
         loadInExec = false;
         isInvisibleSpec = false; // not used since loadInExec is false
         isFuturistic = false; // commit when preceding branches are resolved
-    }else if (scheme.compare("SpectreSafeInvisibleSpec")==0){
+    }else if (scheme.compare("IS-Sp")==0){
         // make load visible when all preceiding branches are resolved
         loadInExec = true;
         isInvisibleSpec = true; // send request but not change cache state

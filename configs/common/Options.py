@@ -293,9 +293,9 @@ def addCommonOptions(parser):
                       help="ARM instruction set.")
     # [InvisiSpec] add options to configure needsTSO and scheme
     parser.add_option("--scheme", default=None, action="store", type="choice",
-            choices=["UnsafeBaseline", "FuturisticSafeFence",
-            "SpectreSafeFence", "FuturisticSafeInvisibleSpec",
-            "SpectreSafeInvisibleSpec"],
+            choices=["Base", "FuturisticSafeFence",
+            "SpectreSafeFence", "IS-Md",
+            "IS-Sp"],
             help="choose baseline or defense designs to evaluate")
     parser.add_option("--needsTSO", default=None, action="store", type="int",
                         help="Select TSO or RC. Set unzero to use TSO.")
